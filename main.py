@@ -15,10 +15,18 @@
 # limitations under the License.
 #
 import webapp2
+import urllib2
+from bs4 import BeautifulSoup
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello world!')
+        self.response.headers['Content-Type'] = 'image/png'
+        self.response.write(open('./icon.png').read())
+        #domain = self.request.get('domain')
+        #html = urllib2.urlopen(domain).read()
+	#soup = BeautifulSoup(html)
+        #self.response.headers['Content-Type'] = 'text/plain'
+        #self.response.write(html)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
