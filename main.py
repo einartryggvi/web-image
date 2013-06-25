@@ -17,17 +17,38 @@
 import webapp2
 import urllib2
 from bs4 import BeautifulSoup
+import urlparse
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'image/png'
-        self.response.write(open('./icon.png').read())
-        #domain = self.request.get('domain')
-        #html = urllib2.urlopen(domain).read()
-	#soup = BeautifulSoup(html)
-        #self.response.headers['Content-Type'] = 'text/plain'
-        #self.response.write(html)
+        url = self.request.get('url')
+        domain = urlparse.urlparse(url)
+        domain = domain.scheme + '://' + domain.hostname + '/'
+        try:
+            html = BeautifulSoup(urllib2.urlopen(url).read())
+            apple = html.find('link', {'rel': 'apple-touch-icon'})
+            favicon = html.find('link', {'rel': 'icon'})
+            facebook = html.find('meta', {'property': 'og:image'})
+            if apple:
+                href = apple['href']
+                if 'http' not in apple['href']:
+                    href = domain + apple['href']
+                self.response.write(urllib2.urlopen(href).read())
+            elif facebook:
+                href = facebook['content']
+                if 'http' not in facebook['content']:
+                    href = domain + facebook['content']
+                self.response.write(urllib2.urlopen(href).read())
+            elif favicon:
+                href = favicon['href']
+                if 'http' not in favicon['href']:
+                    href = domain + favicon['href']
+                self.response.write(urllib2.urlopen(href).read())
+            else:
+                self.response.write(urllib2.urlopen(domain + '/favicon.ico').read())
+        except Exception as e:
+            self.response.write(open('./icon.png').read())
 
-app = webapp2.WSGIApplication([
-    ('/', MainHandler)
-], debug=True)
+
+app = webapp2.WSGIApplication([('/', MainHandler)], debug=True)
