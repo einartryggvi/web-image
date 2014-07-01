@@ -19,9 +19,31 @@ import urllib2
 from bs4 import BeautifulSoup
 import urlparse
 
+class GMT(datetime.tzinfo):
+    def utcoffset(self, dt):
+        return datetime.timedelta(hours=10) # + self.dst(dt)
+    def tzname(self, dt):
+        return "GMT"
+    def dst(self, dt):
+        return datetime.timedelta(0) 
+ 
+class Util(object):
+     
+    def get_expiration_stamp(self,seconds):
+        gmt = GMT() 
+        delta = datetime.timedelta(seconds=seconds)
+        expiration = self.get_current_time()
+        expiration = expiration.replace(tzinfo=gmt) 
+        expiration = expiration + delta
+        EXPIRATION_MASK = "%a, %d %b %Y %H:%M:%S %Z"
+        return expiration.strftime(EXPIRATION_MASK)
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'image/png'
+	self.response.headers["Expires"] = util.get_expiration_stamp(7 * 86400)
+	self.response.headers["Cache-Control: max-age"] = 7 * 86400
+	self.response.headers["Cache-Control"] = "public"
         url = self.request.get('url')
         domain = urlparse.urlparse(url)
         domain = domain.scheme + '://' + domain.hostname + '/'
