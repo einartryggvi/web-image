@@ -49,8 +49,8 @@ class MainHandler(webapp2.RequestHandler):
         seconds = 7 * 86400
         self.response.headers['Content-Type'] = 'image/png'
         self.response.headers['Expires'] = util.get_expiration_stamp(seconds)
-        self.response.headers['Cache-Control: max-age'] = str(seconds)
         self.response.headers['Cache-Control'] = 'public'
+        self.response.headers['Pragma'] = 'cache'
         url = self.request.get('url')
         domain = urlparse.urlparse(url)
         domain = domain.scheme + '://' + domain.hostname + '/'
